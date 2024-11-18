@@ -5,6 +5,10 @@ import { verifyToken } from '../../middleware/authMiddleware.js';
 const router = Router();
 
 router.get('/new',verifyToken, showNewSplitBillForm);
-router.post('/group', verifyToken, createGroups);
+
+router.post('/new',verifyToken, createGroups);
+
+
+
 
 export default router;
