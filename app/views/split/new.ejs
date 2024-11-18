@@ -20,21 +20,23 @@
 
     <div class="container mt-4">
         <!-- Create New Group Form -->
-        <div class="card mb-4">
-            <div class="card-body">
-                <h2 class="card-title mb-3">Create New Group</h2>
-                <form id="createGroupForm" method="POST" action="/group">
-                    <div class="mb-3">
-                        <label class="form-label">Group Name:</label>
-                        <input type="text" id="groupName" name="groupName" class="form-control" placeholder="Enter your group name" required>
-                    </div>
-                    <div id="memberInputs" class="mb-3">
-                        <label class="form-label">Members:</label>
-                        <input id="name" type="text" name="memberInput" class="form-control mb-2" placeholder="Enter member name">
-                    </div>
-                    <button type="button" class="btn btn-secondary me-2" onclick="addMemberInput()">Add Member</button>
-                    <button type="submit" class="btn btn-primary">Create Group</button>
-                </form>
+        <form id="createGroupForm" method="post" action="/split/new/">
+            <div class="mb-3">
+                <label class="form-label">Group Name:</label>
+                <input for="groupName" type="text" id="groupName" name="groupName" class="form-control" placeholder="Enter your group name" required>
+            </div>
+            
+            <div id="memberInputs" class="mb-3">
+                <label class="form-label">Members:</label>
+                <div class="member-input">
+                    <input for="member" id="name" type="text" name="members[]" class="form-control mb-2" placeholder="Enter member name" >
+                </div>
+            </div>
+            
+            <button type="button" class="btn btn-secondary me-2" onclick="addMemberInput()">Add Member</button>
+            <button type="submit" class="btn btn-primary">Create Group</button>
+        </form>
+        
                 
             </div>
         </div>
@@ -45,42 +47,34 @@
     <script>
         // Add member input field
         const addMemberInput = () => {
-    const nameInput = document.getElementById('name');
-    const name = nameInput.value.trim();
+            const name = document.getElementById('name').value;
 
-    if (!name) {
-        alert('Please enter a name.');
-        return;
-    }
+            /*if (!name ) {
+                alert('Please insert a name');
+                return;
+            }*/
 
-    const existingNames = Array.from(document.querySelectorAll('input[name="members[]"]')).map(input => input.value);
-    if (existingNames.includes(name)) {
-        alert('This name already exists.');
-        return;
-    }
+            const existingNames = Array.from(document.querySelectorAll('#memberInputs .form-control')).map(span => span.textContent.trim());
 
-    const div = document.createElement('div');
-    div.className = 'member-input d-flex gap-2 mb-2';
-    div.innerHTML = `
-        <span class="form-control">${name}</span>
-        <input type="hidden" name="members[]" value="${name}">
-        <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()">Remove</button>
-    `;
-    document.getElementById('memberInputs').appendChild(div);
-    nameInput.value = '';
-};
+            if (existingNames.includes(name)) {
+                alert('This name already exists. Please enter a unique name.');
+                return;
+            }
+
+            const div = document.createElement('div');
+            div.className = 'member-input d-flex gap-2 mb-2';
+            div.innerHTML = `
+                <span class="form-control">${name}</span>
+                <input type="hidden" name="members[]" value="${name}">
+                <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()">Remove</button>
+            `;
+            document.getElementById('memberInputs').appendChild(div);
+            document.getElementById('name').value = '';
+        };
 
 
-        // Handle form submission and redirect
-        const createGroupForm = document.getElementById('createGroupForm');
-        createGroupForm.addEventListener('submit', function(event) {
-            event.preventDefault(); // Prevent form from submitting the default way
 
-            // Here you can send the form data via an API call if needed
-            // For now, we will redirect after form submission
-            
-            window.location.href = '/split/group'; // Adjust this if needed
-        });
+
     </script>
 </body>
 </html>
