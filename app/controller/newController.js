@@ -4,6 +4,11 @@ export const showNewSplitBillForm = (req, res) => {
     res.render('split/new',{ user: req.user });
 };
 
+export const showGroupPage = (req,res) => {
+    res.render('split/group');
+
+}
+
 export const createGroups = async (req, res) => {
     try {
         const groupName = req.body.groupName;
@@ -39,3 +44,20 @@ export const createGroups = async (req, res) => {
     }
 };
 
+export const addPayment = async (req, res) => {
+    try {
+        // Fetch the group name from the request
+        const groupName = req.body.group || req.params.groupName; // Flexible source for groupName
+        const group = await Group.findOne({ groupName, googleID: req.user.googleID });
+
+        if (!group) {
+            return res.status(404).send("Group not found.");
+        }
+    console.log(group);
+        // Render addPayment.ejs with the group and members data
+        res.render('split/addPayment', { group: group.groupName, members: group.members });
+    } catch (error) {
+        console.error("Error fetching group for payment:", error);
+        res.status(500).send("Server Error");
+    }
+};
