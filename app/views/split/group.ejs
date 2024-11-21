@@ -1,9 +1,209 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Group Page</title>
+    <title>Split Bill - <%= group.groupName %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        .expense-card {
+            transition: transform 0.2s;
+        }
+        .expense-card:hover {
+            transform: translateY(-2px);
+        }
+        .settlement-card {
+            border-left: 4px solid #0d6efd;
+        }
+        .positive-balance {
+            color: #198754;
+            font-weight: 500;
+        }
+        .negative-balance {
+            color: #dc3545;
+            font-weight: 500;
+        }
+        .neutral-balance {
+            color: #6c757d;
+            font-weight: 500;
+        }
+    </style>
 </head>
 <body>
-   <p><%= group %></p>
+    <!-- Navbar --> 
+    <nav class="navbar navbar-expand-lg navbar-light bg-primary shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-light">𝕤𝕡𝕝𝕚𝕥 𝕓𝕚𝕝𝕝𝕪</a>
+            <div class="dropdown">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-person-circle" data-bs-toggle="dropdown">
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <a class="dropdown-item" href="#">Action</a>
+                            <a class="dropdown-item" href="#">Another action</a>
+                            <a class="dropdown-item" href="#">Something else here</a>
+                          </div>    
+                    </i>
+                    <span class="text-light me-3">Welcome, <%= user.name %></span>
+                    
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Group Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0"><%= group.groupName %></h2>
+            <a href="/split/new" class="btn btn-outline-primary">
+                <i class="bi bi-arrow-left me-1"></i>Back to Groups
+            </a>
+        </div>
+
+        <div class="row">
+            <!-- Add Expense Form -->
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">Add New Expense</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="/split/group/<%= group._id %>/expense" method="POST">
+                            <div class="mb-3">
+                                <label class="form-label">Description</label>
+                                <input type="text" name="description" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Amount ($)</label>
+                                <input type="number" step="0.01" name="amount" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Paid By</label>
+                                <select name="paidBy" class="form-select" required>
+                                    <% group.members.forEach(member => { %>
+                                        <option value="<%= member %>"><%= member %></option>
+                                    <% }) %>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Split Between</label>
+                                <div class="card card-body bg-light">
+                                    <% group.members.forEach(member => { %>
+                                        <div class="form-check">
+                                            <input type="checkbox" name="splitBetween" value="<%= member %>" 
+                                                class="form-check-input" checked>
+                                            <label class="form-check-label"><%= member %></label>
+                                        </div>
+                                    <% }) %>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-plus-circle me-1"></i>Add Expense
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settlements -->
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">Settlement Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <% if (settlements && settlements.length > 0) { %>
+                            <% settlements.forEach(settlement => { %>
+                                <div class="card settlement-card mb-2">
+                                    <div class="card-body py-2">
+                                        <i class="bi bi-arrow-right-circle me-2"></i>
+                                        <strong><%= settlement.from %></strong> should pay 
+                                        <strong>$<%= settlement.amount.toFixed(2) %></strong> to 
+                                        <strong><%= settlement.to %></strong>
+                                    </div>
+                                </div>
+                            <% }) %>
+                        <% } else { %>
+                            <div class="text-center text-muted">
+                                <i class="bi bi-check-circle-fill fs-4"></i>
+                                <p class="mb-0">All settled!</p>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+
+                <!-- Current Balances -->
+                <div class="card shadow-sm mt-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">Current Balances</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group list-group-flush">
+                            <% Object.entries(balances).forEach(([member, balance]) => { %>
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span><%= member %></span>
+                                    <span class="
+                                        <%= balance > 0 ? 'positive-balance' : 
+                                           balance < 0 ? 'negative-balance' : 
+                                           'neutral-balance' %>">
+                                        <% if (balance > 0) { %>
+                                            +$<%= balance.toFixed(2) %>
+                                        <% } else if (balance < 0) { %>
+                                            -$<%= Math.abs(balance).toFixed(2) %>
+                                        <% } else { %>
+                                            $0.00
+                                        <% } %>
+                                    </span>
+                                </div>
+                            <% }) %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Expense History -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Expense History</h5>
+            </div>
+            <div class="card-body">
+                <% if (expenses && expenses.length > 0) { %>
+                    <div class="row">
+                        <% expenses.forEach(expense => { %>
+                            <div class="col-md-6 mb-3">
+                                <div class="card expense-card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
+                                            <h5 class="card-title"><%= expense.description %></h5>
+                                            <span class="badge bg-primary">$<%= expense.amount.toFixed(2) %></span>
+                                        </div>
+                                        <p class="card-text mb-1">
+                                            <i class="bi bi-person-fill me-1"></i>
+                                            Paid by: <strong><%= expense.paidBy %></strong>
+                                        </p>
+                                        <p class="card-text mb-1">
+                                            <i class="bi bi-people-fill me-1"></i>
+                                            Split between: <%= expense.splitBetween.join(', ') %>
+                                        </p>
+                                        <small class="text-muted">
+                                            <i class="bi bi-calendar me-1"></i>
+                                            <%= new Date(expense.date).toLocaleDateString() %>
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        <% }) %>
+                    </div>
+                <% } else { %>
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-receipt fs-1 mb-2"></i>
+                        <p class="mb-0">No expenses added yet</p>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>
