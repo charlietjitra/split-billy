@@ -1,40 +1,230 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Group Page</title>
+    <title>Split Bill - <%= group.groupName %></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        .expense-card {
+            transition: transform 0.2s;
+        }
+        .expense-card:hover {
+            transform: translateY(-2px);
+        }
+        .settlement-card {
+            border-left: 4px solid #0d6efd;
+        }
+        .positive-balance {
+            color: #198754;
+            font-weight: 500;
+        }
+        .negative-balance {
+            color: #dc3545;
+            font-weight: 500;
+        }
+        .neutral-balance {
+            color: #6c757d;
+            font-weight: 500;
+        }
+    </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-primary shadow-sm">
+     <!-- Navbar --> 
+     <nav class="navbar navbar-expand-lg navbar-light bg-warning shadow-sm">
         <div class="container">
             <a class="navbar-brand fw-bold text-light">𝕤𝕡𝕝𝕚𝕥 𝕓𝕚𝕝𝕝𝕪</a>
-            <div class="d-flex align-items-center">
-                <a href="/logout" class="btn btn-outline-danger btn-sm">
-                    <i class="bi bi-power">Logout</i>
-                </a>
+            <div class="dropdown d-flex align-items-center">
+                <i class="bi bi-person-fill"></i>
+                <span class="text-light me-3">Welcome, <%= user.name %></span>
+                <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-person-circle"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+                    <li><a class="dropdown-item" href="/split/history">View Group History</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="/logout"><i class="bi bi-power me-1"></i>Logout</a></li>
+                </ul>
             </div>
         </div>
     </nav>
+    <div class="container mt-4">
+        <!-- Group Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0"><%= group.groupName %></h2>
+            <a href="/split/new" class="btn btn-outline-primary">
+                <i class="bi bi-arrow-left me-1"></i>Back to Groups
+            </a>
+        </div>
 
-    <div class="container mt-5">
-        <!-- Payment Section -->
-        <div class="card bg-danger text-white mt-4">
-            <div class="card-body">
-                <h4 class="card-title">Group: <%=group%></h4>
-                <p class="card-text">Members: <%=members%></p>
-            <form id = "addPayment" method = "POST" action="/split/group">
-                <input type ="hidden" name ="group" value ="<%=group%>">
-                <div class="d-grid gap-2">
-                    <button class="btn btn-light text-danger fw-bold">Add a payment</button>
+        <div class="row">
+           <!-- Add or Edit Expense Form -->
+<div class="col-md-6 mb-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-warning text-white">
+            <h5 class="card-title mb-0"><%= expenseToEdit ? 'Edit Expense' : 'Add New Expense' %></h5>
+        </div>
+        <div class="card-body">
+            <form action="/split/group/<%= group._id %>/expense<%= expenseToEdit ? '/' + expenseToEdit._id + '/edit' : '' %>" method="POST">
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <input type="text" name="description" class="form-control" 
+                        value="<%= expenseToEdit ? expenseToEdit.description : '' %>" required>
                 </div>
-                <p class="mt-3 text-black-50 small">
-                    Register payment records from the "Add a payment" button
-                </p>
+                <div class="mb-3">
+                    <label class="form-label">Amount ($)</label>
+                    <input type="number" step="0.01" name="amount" class="form-control" 
+                        value="<%= expenseToEdit ? expenseToEdit.amount : '' %>" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Paid By</label>
+                    <select name="paidBy" class="form-select" required>
+                        <% group.members.forEach(member => { %>
+                            <option value="<%= member %>" 
+                                <%= expenseToEdit && expenseToEdit.paidBy === member ? 'selected' : '' %>>
+                                <%= member %>
+                            </option>
+                        <% }) %>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Split Between</label>
+                    <div class="card card-body bg-light">
+                        <% group.members.forEach(member => { %>
+                            <div class="form-check">
+                                <input type="checkbox" name="splitBetween" value="<%= member %>" 
+                                    class="form-check-input" 
+                                    <%= expenseToEdit && expenseToEdit.splitBetween.some(s => s.member === member) ? 'checked' : '' %>
+                                >
+                                <label class="form-check-label"><%= member %></label>
+                            </div>
+                        <% }) %>
+                        
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-warning">
+                    <i class="bi bi-plus-circle me-1"></i><%= expenseToEdit ? 'Update Expense' : 'Add Expense' %>
+                </button>
             </form>
-            </div>
         </div>
     </div>
+</div>
+
+           <!-- Settlements -->
+           <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="card-title mb-0">Settlement Summary</h5>
+                </div>
+                <div class="card-body">
+                    <% if (settlements && settlements.length > 0) { %>
+                        <% settlements.forEach(settlement => { %>
+                            <div class="card settlement-card mb-2">
+                                <div class="card-body py-2">
+                                    <i class="bi bi-arrow-right-circle me-2"></i>
+                                    <strong><%= settlement.from %></strong> should pay 
+                                    <strong>$<%= settlement.amount.toFixed(2) %></strong> to 
+                                    <strong><%= settlement.to %></strong>
+                                </div>
+                            </div>
+                        <% }) %>
+                    <% } else { %>
+                        <div class="text-center text-muted">
+                            <i class="bi bi-check-circle-fill fs-4"></i>
+                            <p class="mb-0">All settled!</p>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+
+                 <!-- Current Balances -->
+                 <div class="card shadow-sm mt-4">
+                    <div class="card-header bg-warning text-white">
+                        <h5 class="card-title mb-0">Current Balances</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group list-group-flush">
+                            <% Object.entries(balances).forEach(([member, balance]) => { %>
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span><%= member %></span>
+                                    <span class="
+                                        <%= balance > 0 ? 'positive-balance' : 
+                                           balance < 0 ? 'negative-balance' : 
+                                           'neutral-balance' %>">
+                                        <% if (balance > 0) { %>
+                                            +$<%= balance.toFixed(2) %>
+                                        <% } else if (balance < 0) { %>
+                                            -$<%= Math.abs(balance).toFixed(2) %>
+                                        <% } else { %>
+                                            $0.00
+                                        <% } %>
+                                    </span>
+                                </div>
+                            <% }) %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+<!-- Expense History -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-warning text-white">
+        <h5 class="card-title mb-0">Expense History</h5>
+    </div>
+    <div class="card-body">
+        <% if (expenses && expenses.length > 0) { %>
+            <div class="row">
+                <% expenses.forEach(expense => { %>
+                    <div class="col-md-6 mb-3">
+                        <div class="card expense-card h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <h5 class="card-title"><%= expense.description %></h5>
+                                    <span class="badge bg-warning">$<%= expense.amount.toFixed(2) %></span>
+                                </div>
+                                <p class="card-text mb-1">
+                                    <i class="bi bi-person-fill me-1"></i>
+                                    Paid by: <strong><%= expense.paidBy %></strong>
+                                </p>
+                                <p class="card-text mb-1">
+                                    <i class="bi bi-people-fill me-1"></i>
+                                    Split between: 
+                                    <%= expense.splitBetween.map(entry => `${entry.member} ($${entry.share.toFixed(2)})`).join(', ') %>
+                                </p>
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar me-1"></i>
+                                    <%= new Date(expense.date).toLocaleDateString() %>
+                                </small>
+                                <!-- Edit Button -->
+                                <a href="/split/group/<%= group._id %>?edit=<%= expense._id %>" class="btn btn-outline-warning btn-sm me-2">Edit</a>
+                        
+                                <!-- Delete Button -->
+                                <form action="/split/group/<%= expense.groupId %>/expense/<%= expense._id %>/delete" method="POST" onsubmit="return confirm('Are you sure you want to delete this expense?');">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                                        <i class="bi bi-trash me-1"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                <% }) %>
+            </div>
+        <% } else { %>
+            <div class="text-center text-muted py-4">
+                <i class="bi bi-receipt fs-1 mb-2"></i>
+                <p class="mb-0">No expenses added yet</p>
+            </div>
+        <% } %>
+    </div>
+</div>
+
+
+    </div>
+</div>
+
+
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>
