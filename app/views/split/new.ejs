@@ -10,12 +10,17 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-warning shadow-sm">
         <div class="container">
             <a class="navbar-brand fw-bold text-light">𝕤𝕡𝕝𝕚𝕥 𝕓𝕚𝕝𝕝𝕪</a>
-            <div class="d-flex align-items-center">
+            <div class="dropdown d-flex align-items-center">
                 <i class="bi bi-person-fill"></i>
                 <span class="text-light me-3">Welcome, <%= user.name %></span>
-                <a href="/logout" class="btn btn-outline-light btn-sm">
-                    <i class="bi bi-power me-1"></i>Logout
-                </a>
+                <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-person-circle"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+                    <li><a class="dropdown-item" href="/split/history">View Group History</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="/logout"><i class="bi bi-power me-1"></i>Logout</a></li>
+                </ul>
             </div>
         </div>
     </nav>
@@ -31,15 +36,13 @@
                         <form id="createGroupForm" method="post" action="/split/new">
                             <div class="mb-3">
                                 <label class="form-label">Group Name</label>
-                                <input type="text" name="groupName" class="form-control" 
-                                    placeholder="Enter group name" required>
+                                <input type="text" name="groupName" class="form-control" placeholder="Enter group name" required>
                             </div>
                             
                             <div id="memberInputs" class="mb-3">
                                 <label class="form-label">Members</label>
                                 <div class="input-group mb-2">
-                                    <input type="text" id="memberInput" class="form-control" 
-                                        placeholder="Enter member name">
+                                    <input type="text" id="memberInput" class="form-control" placeholder="Enter member name">
                                     <button type="button" class="btn btn-secondary" onclick="addMember()">
                                         <i class="bi bi-plus"></i>
                                     </button>
