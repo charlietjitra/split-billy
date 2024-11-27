@@ -21,6 +21,6 @@ export const googleCallback = (req, res, next) => {
             maxAge: 3600000 // 1 hour
         });
 
-        res.redirect('/split/new');
+        res.redirect('/split/group/new');
     })(req, res, next);
 };

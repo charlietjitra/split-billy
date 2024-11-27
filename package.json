@@ -2,8 +2,10 @@
   "name": "split-bill",
   "version": "0.0.0",
   "private": true,
+  "main" : "main.js",
   "type": "module",
   "scripts": {
+    "electron" : "electron . ",
     "dev": "nodemon app.js",
     "start": "node ./bin/www"
   },
@@ -16,10 +18,15 @@
     "express": "~4.16.1",
     "express-session": "^1.18.1",
     "http-errors": "~1.6.3",
+    "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
+    "method-override": "^3.0.0",
     "mongoose": "^8.8.1",
     "morgan": "~1.9.1",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0"
   }
 }

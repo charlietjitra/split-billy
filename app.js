@@ -8,9 +8,12 @@ import indexRouter from './app/routes/public/index.js';
 import authRouter from './app/routes/public/auth.js';
 import passport from 'passport';
 import session from 'express-session';
-import splitBillRoutes from './app/routes/private/splitBill.js';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import methodOverride from 'method-override';
+import expenseRoutes from './app/routes/private/expense.js';
+import historyRoutes from './app/routes/private/history.js';
+import groupRoutes from './app/routes/private/group.js';
 
 dotenv.config()
 const app = express();
@@ -30,11 +33,11 @@ mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("Connected to MongoDB"))
 .catch((err) => console.error("MongoDB connection error:", err));
 
-
 // view engine setup
 app.set('views', path.join(__dirname, 'app', 'views'));
 app.set('view engine', 'ejs');
-  
+
+app.use(methodOverride('_method'));
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -43,7 +46,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/auth', authRouter);
-app.use('/split', splitBillRoutes)
+app.use('/split/group', groupRoutes);   
+app.use('/split/expense', expenseRoutes); 
+app.use('/split/history', historyRoutes); 
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -63,9 +69,14 @@ app.use(function(err, req, res, next) {
   });
 });
 
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
+export const createServer = () => {
+  const port = process.env.PORT || 3000;
+  const server = app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+  });
+  return { server, port }
+}
+
+createServer();
 
 export default app;
