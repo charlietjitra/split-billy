@@ -6,10 +6,12 @@ import User from "../model/userSchema.js  ";
 
 dotenv.config();
 
+const callbackURL = process.env.NODE_ENV ===  'production'? process.env.CALLBACK_URL_PROD : process.env.CALLBACK_URL_DEV 
+
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: "http://localhost:3000/auth/google/callback",
+    callbackURL: callbackURL,
     proxy : "true",
     userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo"
   },

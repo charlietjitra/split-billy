@@ -2,10 +2,10 @@
   "name": "split-bill",
   "version": "0.0.0",
   "private": true,
-  "main" : "main.js",
+  "main": "main.js",
   "type": "module",
   "scripts": {
-    "electron" : "electron . ",
+    "electron": "electron . ",
     "dev": "nodemon app.js",
     "start": "node ./bin/www"
   },
@@ -21,6 +21,7 @@
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
     "method-override": "^3.0.0",
+    "mongodb": "^6.11.0",
     "mongoose": "^8.8.1",
     "morgan": "~1.9.1",
     "passport": "^0.7.0",

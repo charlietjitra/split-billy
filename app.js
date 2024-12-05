@@ -8,7 +8,7 @@ import indexRouter from './app/routes/public/index.js';
 import authRouter from './app/routes/public/auth.js';
 import passport from 'passport';
 import session from 'express-session';
-import mongoose from 'mongoose';
+import mongoose, { mongo } from 'mongoose';
 import dotenv from 'dotenv';
 import methodOverride from 'method-override';
 import expenseRoutes from './app/routes/private/expense.js';
@@ -29,8 +29,9 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 //setup mongoose
-mongoose.connect(process.env.MONGO_URI)
-.then(() => console.log("Connected to MongoDB"))
+const mongoURI = process.env.NODE_ENV === 'production' ? process.env.MONGO_URI_PROD : process.env.MONGO_URI_DEV;
+mongoose.connect(mongoURI)
+.then(() => console.log("Connected to MongoDB", mongoURI))
 .catch((err) => console.error("MongoDB connection error:", err));
 
 // view engine setup
