@@ -7,7 +7,7 @@
   "scripts": {
     "electron": "electron . ",
     "dev": "nodemon app.js",
-    "start": "node ./bin/www"
+    "start": "node app/bin/www"
   },
   "dependencies": {
     "bootstrap": "^5.3.3",
