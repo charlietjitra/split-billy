@@ -230,14 +230,6 @@
         </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        async function initializeLiff() {
-            try {
-                await liff.init({ liffId: "2006665682-BXEAwxe8" });
-            } catch (err) {
-                console.error('LIFF initialization failed', err);
-            }
-        }
-        
         async function shareToLine() {
             try {
                 const settlements = <%- JSON.stringify(settlements) %>;
@@ -254,12 +246,18 @@
                             `• ${member}: ${balance > 0 ? '+' : ''}$${balance.toFixed(2)}`
                         ).join('\n');
         
-                const result = await liff.shareTargetPicker([
-                    {
-                        type: "text",
-                        text: messageText
+                liff.init({liffid: "2006665682-BXEAwxe8"}, () => {
+                    if(liff.isLoggedIn()){
+                        liff.shareTargetPicker([
+                        {
+                            type: "text",
+                            text: messageText,
+                        },
+                        ]).catch(err => console.error(err));;
+                    }else{
+                        liff.login();
                     }
-                ]);
+                })
         
                 if (result) {
                     console.log('Message sent successfully');
